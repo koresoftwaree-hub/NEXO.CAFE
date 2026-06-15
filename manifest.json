@@ -1,0 +1,25 @@
+{
+  "id": "nexo-cafe-cliente",
+  "name": "Nexo Cafe",
+  "short_name": "Nexo Cafe",
+  "description": "Tu tarjeta digital de beneficios para Nexo Cafe.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#D1D1D1",
+  "theme_color": "#E2E2E2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

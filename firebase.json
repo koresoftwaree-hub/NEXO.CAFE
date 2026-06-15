@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": ".",
+    "site": "nexo-cafeteria",
+    "cleanUrls": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

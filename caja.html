@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Caja - Nexo Cafe</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D1D1D1">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="css/caja.css">
+</head>
+<body>
+
+    <div id="modalAlertaCustom" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div id="textoAlertaCustom" class="custom-modal-text">Mensaje de error</div>
+            <button id="btnCerrarAlerta" class="btn-modal-ok" style="width: 100%;">Entendido</button>
+        </div>
+    </div>
+
+    <div id="modalConfirmCustom" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div id="textoConfirmCustom" class="custom-modal-text">¿Confirmas la entrega?</div>
+            <div class="modal-btn-row">
+                <button id="btnCancelarConfirm" class="btn-modal-cancel">Cancelar</button>
+                <button id="btnAceptarConfirm" class="btn-modal-ok">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pantallaLogin">
+        <div class="logo-animado" style="margin-bottom: 40px;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 170" width="160" height="80">
+                <text x="175" y="75" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="-4px" text-anchor="middle">Nexo</text>
+                <text x="175" y="155" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="2px" text-anchor="middle">Cafe</text>
+            </svg>
+        </div>
+        <p style="color: var(--dark); margin-bottom: 20px; font-size: 14px; font-weight: 700; letter-spacing: 2px;">CAJA OPERATIVA</p>
+        <input type="password" id="inputPin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
+        <button id="btnDesbloquear" class="btn btn-brand" style="max-width: 200px;">Desbloquear Caja</button>
+    </div>
+
+    <div class="main-container">
+        <div class="card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 170" width="100" height="50">
+                <text x="0" y="75" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="-4px">Nexo</text>
+                <text x="0" y="155" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="2px">Cafe</text>
+            </svg>
+            <div style="font-size: 11px; color: var(--dark); opacity: 0.6; font-family: monospace; font-weight: 800;">SCANNER v2.1</div>
+        </div>
+
+        <div id="mensajeLoader">Sincronizando base de datos...</div>
+
+        <div id="pantallaBusqueda" class="modern-card">
+            <p style="color: var(--dark); opacity: 0.8; font-size: 14px; font-weight: 600; margin-top: 0; margin-bottom: 24px;">Apunta al código QR del cliente</p>
+            
+            <div id="reader"></div>
+            
+            <div id="errorCamara" style="display: none; color: #E74C3C; font-size: 13px; font-weight: 600; margin-bottom: 20px;">
+                No se pudo activar la cámara. Usa la búsqueda manual.
+            </div>
+            
+            <div class="separador">o ingresa celular</div>
+            
+            <div class="input-manual-group">
+                <input type="tel" id="inputTelBusqueda" placeholder="Ej: 2215551234">
+                <button id="btnBuscarManual" class="btn-buscar-manual">Buscar Ficha</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pantallaAcciones">
+        <div class="acciones-content" id="contenedorAcciones">
+            <div class="cliente-info-header">
+                <div class="cliente-avatar" id="uiAvatar">A</div>
+                <div class="cliente-textos">
+                    <div class="cliente-nombre" id="uiNombre">Nombre...</div>
+                    <span class="cliente-tel" id="uiTel">Teléfono...</span>
+                </div>
+            </div>
+
+            <div class="estado-sellos-container">
+                <div class="estado-sellos-texto">TAZAS ACUMULADAS:</div>
+                <div class="estado-sellos-numero">
+                    <span id="uiSellos" class="sello-actual">0</span>
+                    <span class="sello-total">/ 8</span>
+                </div>
+            </div>
+
+            <div class="btn-stack">
+                <button id="btnSumar" class="btn btn-brand">+ Sumar 1 Sello</button>
+                
+                <div id="contenedorPremios" style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
+                    <button id="btnRestar" class="btn btn-outlined" style="flex: 1;">Corregir (-1)</button>
+                    <button id="btnVolver" class="btn btn-outlined" style="flex: 1; border-color: #E74C3C; color: #E74C3C; background: rgba(231, 76, 60, 0.1);">Cerrar Ficha</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/caja.js"></script>
+</body>
+</html>

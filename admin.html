@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Panel - Nexo Cafe</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg-main: #D1D1D1;  
+            --bg-card: #EFEFEF;  
+            --accent: #000000;   
+            --dark: #111111;     
+            --dark-soft: rgba(0, 0, 0, 0.25); 
+            --white: #EFEFEF;    
+        }
+
+        body {
+            background-color: var(--bg-main); color: var(--dark);
+            font-family: 'Inter', sans-serif; margin: 0; padding: 15px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+
+        .main-container { width: 100%; max-width: 1000px; padding-top: 10px; }
+        
+        h1 { font-family: 'Montserrat', sans-serif; color: var(--dark); margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px;}
+        
+        /* --- LOGIN --- */
+        #pantallaLogin {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-main); z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        .pin-input {
+            padding: 20px; border-radius: 16px; border: 3px solid var(--dark); font-size: 32px;
+            text-align: center; width: 100%; max-width: 200px; margin-bottom: 25px; letter-spacing: 10px;
+            font-weight: 900; color: var(--dark); font-family: monospace; background-color: var(--bg-card);
+            transition: all 0.3s; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pin-input:focus { border-color: var(--dark); outline: none; box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15); }
+        
+        .btn {
+            background: var(--dark); color: var(--bg-card); border: 2px solid var(--dark); padding: 18px 30px;
+            border-radius: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 15px; font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .btn:hover { transform: translateY(-2px); background: #222222; }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        #pantallaDashboard { display: none; width: 100%; }
+        
+        /* --- CLASE OCULTA --- */
+        .oculto { display: none !important; }
+
+        /* --- CUADRADOS GRANDES DE MÉTRICAS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 24px 0; }
+        @media (min-width: 768px) { .stats-grid { grid-template-columns: repeat(5, 1fr); } }
+        
+        .stat-card {
+            background: var(--bg-card); padding: 24px 10px; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); text-align: center;
+            border: 2px solid var(--dark-soft); display: flex; flex-direction: column; justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--dark); }
+        
+        .stat-value { font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; color: var(--dark); line-height: 1; margin-bottom: 8px;}
+        .stat-label { font-size: 11px; color: var(--dark); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; opacity: 0.7; padding: 0 5px;}
+
+        /* --- PANELES --- */
+        .dashboard-content { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 40px; }
+        
+        .panel-box {
+            background: var(--bg-card); border-radius: 24px; padding: 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1); border: 2px solid var(--dark-soft);
+        }
+        
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 2px dashed var(--dark-soft); padding-bottom: 12px;
+        }
+        .panel-title { font-weight: 800; font-size: 18px; color: var(--dark); }
+
+        .grafico-wrapper { max-width: 100%; height: 300px; position: relative; }
+
+        /* --- TABLA RANKING --- */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 16px 12px; border-bottom: 1px solid var(--dark-soft); }
+        th { color: var(--dark); opacity: 0.6; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;}
+        td { font-size: 15px; color: var(--dark); font-weight: 600;}
+        
+        .badge-ranking { background: var(--dark); color: var(--white); padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 900; font-family: 'Montserrat', sans-serif; }
+        
+        #mensajeLoader { text-align: center; margin-top: 50px; font-weight: 800; color: var(--dark); animation: titilar 1.5s infinite; font-size: 18px;}
+        @keyframes titilar { 0% {opacity:0.5;} 50% {opacity:1;} 100% {opacity:0.5;} }
+
+        /* --- FILTROS DE MESES --- */
+        .month-slider {
+            display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; margin-top: 16px;
+            scrollbar-width: none; 
+        }
+        .month-slider::-webkit-scrollbar { display: none; } 
+        
+        .month-pill {
+            background: transparent; border: 2px solid var(--dark-soft); color: var(--dark);
+            padding: 12px 24px; border-radius: 20px; font-family: 'Inter', sans-serif; font-size: 14px; 
+            font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.3s;
+        }
+        .month-pill:hover { border-color: var(--dark); }
+        .month-pill.active { 
+            background: var(--dark); border-color: var(--dark); color: var(--bg-card); 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pantallaLogin">
+        <div class="logo-animado">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 170" width="220" height="110">
+                <text x="175" y="75" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="-4px" text-anchor="middle">Nexo</text>
+                <text x="175" y="155" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="2px" text-anchor="middle">Cafe</text>
+            </svg>
+        </div>
+        <p style="color: var(--dark); margin-bottom: 30px; font-size: 14px; font-weight: 800; letter-spacing: 4px; opacity: 0.7;">PANEL DE CONTROL</p>
+        <input type="password" id="inputPin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
+        <button id="btnDesbloquear" class="btn" style="width: 220px;">Acceder al Panel</button>
+        <p id="errorPin" style="color: #E74C3C; display: none; margin-top: 15px; font-size: 15px; font-weight: 800;">PIN incorrecto</p>
+    </div>
+
+    <div class="main-container">
+        <div id="pantallaDashboard">
+            
+            <div style="margin-bottom: 10px; padding: 0 5px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1>Panel Dueño</h1>
+                    <p style="margin: 4px 0 0 0; color: var(--dark); opacity: 0.6; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Control de Movimientos</p>
+                </div>
+                <div style="margin: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 170" width="100" height="50">
+                        <text x="175" y="75" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="-4px" text-anchor="middle">Nexo</text>
+                        <text x="175" y="155" font-family="'Montserrat', sans-serif" font-weight="900" font-size="85" fill="var(--dark)" letter-spacing="2px" text-anchor="middle">Cafe</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; margin-bottom: 25px;">
+                <label style="font-size: 16px; font-weight: 800; color: var(--dark); margin: 0;">Filtrar rendimiento por mes:</label>
+                <div class="month-slider" id="contenedorMeses">
+                    <button class="month-pill active" onclick="seleccionarMes('todos', this)">Histórico Completo</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-06', this)">Junio</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-07', this)">Julio</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-08', this)">Agosto</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-09', this)">Septiembre</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-10', this)">Octubre</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-11', this)">Noviembre</button>
+                    <button class="month-pill" onclick="seleccionarMes('2026-12', this)">Diciembre</button>
+                </div>
+            </div>
+
+            <div id="mensajeLoader">Cargando base de datos estática...</div>
+
+            <div id="contenidoDatos" style="display: none;">
+                
+                <div class="stats-grid" id="gridGeneral">
+                    <div class="stat-card" style="background: var(--dark); border-color: var(--dark);">
+                        <div class="stat-value" id="uiGenClientes" style="color: var(--white);">0</div>
+                        <div class="stat-label" style="color: var(--white); opacity: 0.8;">Gente Anotada Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiGenSellos">0</div>
+                        <div class="stat-label">Sellos Dados Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiGenCafes">0</div>
+                        <div class="stat-label">Cafés Gratis Entregados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiGenDesc">0</div>
+                        <div class="stat-label">Premios 5% OFF Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiGenBarritas">0</div>
+                        <div class="stat-label">Barritas Entregadas Total</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid oculto" id="gridMes">
+                    <div class="stat-card" style="background: var(--dark); border-color: var(--dark);">
+                        <div class="stat-value" id="uiMesClientes" style="color: var(--white);">0</div>
+                        <div class="stat-label" style="color: var(--white); opacity: 0.8;">Gente Anotada <span class="lbl-mes-dinamico">Mes</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiMesSellos">0</div>
+                        <div class="stat-label">Sellos Dados <span class="lbl-mes-dinamico">Mes</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiMesCafes">0</div>
+                        <div class="stat-label">Cafés Gratis <span class="lbl-mes-dinamico">Mes</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiMesDesc">0</div>
+                        <div class="stat-label">Premios 5% OFF <span class="lbl-mes-dinamico">Mes</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="uiMesBarritas">0</div>
+                        <div class="stat-label">Barritas Entregadas <span class="lbl-mes-dinamico">Mes</span></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    
+                    <div class="panel-box" id="panelGraficoEvolucion">
+                        <div class="panel-header">
+                            <span class="panel-title">Evolución de Clientes Anotados</span>
+                            <span style="font-size: 11px; color: var(--dark); opacity: 0.6; font-weight: 700;">Curva de crecimiento global</span>
+                        </div>
+                        <div class="grafico-wrapper">
+                            <canvas id="graficoRegistros"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="panel-box" id="panelRanking">
+                        <div class="panel-header">
+                            <span class="panel-title">Ranking de Clientes 🏆</span>
+                            <span style="font-size: 11px; color: var(--dark); opacity: 0.6; font-weight: 700;">Los mejores consumidores</span>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>WhatsApp</th>
+                                        <th>Nombre del cliente</th>
+                                        <th style="text-align: right;">Sellos Acumulados</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaRanking">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaqJraAXeZ8F4zCd9GUIdNIHhfU7FMzJk",
+            authDomain: "club-cafe-app.firebaseapp.com",
+            databaseURL: "https://club-cafe-app-default-rtdb.firebaseio.com",
+            projectId: "club-cafe-app",
+            storageBucket: "club-cafe-app.firebasestorage.app",
+            messagingSenderId: "1007849307452",
+            appId: "1:1007849307452:web:2472f6b2cab7deeae53239",
+            measurementId: "G-6314S7TS0T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let chartInstancia = null;
+        let todosLosClientes = [];
+        let filtroActual = 'todos'; 
+        
+        const nombresMeses = { "06":"Junio", "07":"Julio", "08":"Agosto", "09":"Septiembre", "10":"Octubre", "11":"Noviembre", "12":"Diciembre" };
+
+        if (sessionStorage.getItem('adminAutorizado') === 'true') {
+            document.getElementById('pantallaLogin').style.display = 'none';
+            document.getElementById('pantallaDashboard').style.display = 'block';
+            cargarDatosEstaticos();
+        }
+
+        document.getElementById('btnDesbloquear').addEventListener('click', verificarPin);
+        document.getElementById('inputPin').addEventListener('keypress', (e) => { if(e.key === 'Enter') verificarPin(); });
+
+        async function verificarPin() {
+            const pinIngresado = document.getElementById('inputPin').value;
+            const btn = document.getElementById('btnDesbloquear');
+            
+            btn.innerText = "Verificando...";
+            btn.disabled = true;
+
+            try {
+                // Validación contra el servidor en Render
+                const respuesta = await fetch('https://nexo-backend-i9c1.onrender.com/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pinIngresado: pinIngresado })
+                });
+
+                const data = await respuesta.json();
+
+                if (respuesta.ok && data.success) {
+                    sessionStorage.setItem('adminAutorizado', 'true');
+                    document.getElementById('pantallaLogin').style.display = 'none';
+                    document.getElementById('pantallaDashboard').style.display = 'block';
+                    cargarDatosEstaticos();
+                } else {
+                    document.getElementById('errorPin').innerText = data.error || "PIN incorrecto";
+                    document.getElementById('errorPin').style.display = 'block';
+                    document.getElementById('inputPin').value = '';
+                }
+            } catch (error) {
+                document.getElementById('errorPin').innerText = "Error conectando con el servidor";
+                document.getElementById('errorPin').style.display = 'block';
+            } finally {
+                btn.innerText = "Acceder al Panel";
+                btn.disabled = false;
+            }
+        }
+
+        async function cargarDatosEstaticos() {
+            document.getElementById('mensajeLoader').style.display = 'block';
+            document.getElementById('contenidoDatos').style.display = 'none';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "clientes"));
+                todosLosClientes = [];
+
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    let pts = d.puntos || 0;
+                    let prem = d.totalPremiosCanjeados || 0;
+                    todosLosClientes.push({
+                        telefono: doc.id,
+                        nombre: d.nombre,
+                        puntos: pts,
+                        premios: prem,
+                        totalSellos: pts + (prem * 8), 
+                        fecha: d.fechaRegistro || '',
+                        desc3Usado: d.desc3Usado || false,
+                        desc5Usado: d.desc5Usado || false
+                    });
+                });
+
+                document.getElementById('mensajeLoader').style.display = 'none';
+                document.getElementById('contenidoDatos').style.display = 'block';
+
+                calcularYRenderizar(); 
+            } catch (error) {
+                console.error("Error realizando el fetch estático: ", error);
+                document.getElementById('mensajeLoader').innerText = "Error crítico al descargar la base de datos.";
+            }
+        }
+
+        window.seleccionarMes = function(mesFiltro, btn) {
+            document.querySelectorAll('.month-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filtroActual = mesFiltro; 
+            calcularYRenderizar();
+        }
+
+        function calcularYRenderizar() {
+            let genTotalClientes = todosLosClientes.length;
+            let genTotalSellos = 0;
+            let genTotalCafes = 0;
+            let genTotalDesc = 0;
+            let genTotalBarritas = 0;
+            let clientesPorMesGlobal = {};
+
+            todosLosClientes.forEach(c => {
+                genTotalSellos += c.totalSellos;
+                genTotalCafes += c.premios;
+                genTotalDesc += c.premios + (c.desc3Usado ? 1 : 0);
+                genTotalBarritas += c.premios + (c.desc5Usado ? 1 : 0);
+
+                if (c.fecha && c.fecha >= "2026-06") {
+                    let m = c.fecha.substring(0, 7); 
+                    clientesPorMesGlobal[m] = (clientesPorMesGlobal[m] || 0) + 1;
+                }
+            });
+
+            document.getElementById('uiGenClientes').innerText = genTotalClientes;
+            document.getElementById('uiGenSellos').innerText = genTotalSellos;
+            document.getElementById('uiGenCafes').innerText = genTotalCafes;
+            document.getElementById('uiGenDesc').innerText = genTotalDesc;
+            document.getElementById('uiGenBarritas').innerText = genTotalBarritas;
+
+            let clientesParaRanking = todosLosClientes;
+
+            if (filtroActual === 'todos') {
+                document.getElementById('gridGeneral').classList.remove('oculto');
+                document.getElementById('gridMes').classList.add('oculto');
+                document.getElementById('panelGraficoEvolucion').classList.remove('oculto');
+            } else {
+                document.getElementById('gridGeneral').classList.add('oculto');
+                document.getElementById('gridMes').classList.remove('oculto');
+                document.getElementById('panelGraficoEvolucion').classList.add('oculto');
+
+                let mesClave = filtroActual.substring(5, 7);
+                let nombreMes = nombresMeses[mesClave] || "Mes";
+                
+                document.querySelectorAll('.lbl-mes-dinamico').forEach(lbl => lbl.innerText = nombreMes);
+                
+                let filtrados = todosLosClientes.filter(c => c.fecha && c.fecha.startsWith(filtroActual));
+                clientesParaRanking = filtrados; 
+
+                let mesTotalClientes = filtrados.length;
+                let mesTotalSellos = 0;
+                let mesTotalCafes = 0;
+                let mesTotalDesc = 0;
+                let mesTotalBarritas = 0;
+                
+                filtrados.forEach(c => {
+                    mesTotalSellos += c.totalSellos;
+                    mesTotalCafes += c.premios;
+                    mesTotalDesc += c.premios + (c.desc3Usado ? 1 : 0);
+                    mesTotalBarritas += c.premios + (c.desc5Usado ? 1 : 0);
+                });
+
+                document.getElementById('uiMesClientes').innerText = mesTotalClientes;
+                document.getElementById('uiMesSellos').innerText = mesTotalSellos;
+                document.getElementById('uiMesCafes').innerText = mesTotalCafes;
+                document.getElementById('uiMesDesc').innerText = mesTotalDesc;
+                document.getElementById('uiMesBarritas').innerText = mesTotalBarritas;
+            }
+
+            // RENDERIZAR TABLA DE RANKING ORDENADA POR SELLOS
+            let rankingClientes = [...clientesParaRanking].sort((a, b) => b.totalSellos - a.totalSellos);
+            
+            const tbody = document.getElementById('tablaRanking');
+            tbody.innerHTML = '';
+
+            rankingClientes.slice(0, 15).forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-family: monospace; opacity: 0.6; font-size: 13px;">${c.telefono}</td>
+                    <td style="font-weight: 700;">${c.nombre}</td>
+                    <td style="text-align: right;"><span class="badge-ranking">${c.totalSellos} Sellos</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (filtroActual === 'todos') {
+                let labelsGrafico = [];
+                let dataGraficoAcumulada = [];
+                let totalAcumulado = 0;
+                
+                let mesesRegistrados = Object.keys(clientesPorMesGlobal).sort();
+                
+                if(mesesRegistrados.length === 0) {
+                    labelsGrafico = ["Junio"];
+                    dataGraficoAcumulada = [0];
+                } else {
+                    mesesRegistrados.forEach(mesStr => {
+                        totalAcumulado += clientesPorMesGlobal[mesStr];
+                        let mesNum = mesStr.substring(5, 7);
+                        labelsGrafico.push(nombresMeses[mesNum] || mesStr);
+                        dataGraficoAcumulada.push(totalAcumulado);
+                    });
+                }
+
+                renderizarGraficoLineal(labelsGrafico, dataGraficoAcumulada);
+            }
+        }
+
+        function renderizarGraficoLineal(labels, data) {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#111111';
+            
+            const ctx = document.getElementById('graficoRegistros').getContext('2d');
+            
+            if(chartInstancia) {
+                chartInstancia.destroy();
+            }
+
+            chartInstancia = new Chart(ctx, {
+                type: 'line', 
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gente Anotada (Acumulado)',
+                        data: data,
+                        borderColor: '#111111',
+                        backgroundColor: 'rgba(17, 17, 17, 0.05)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#111111',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.04)' } }, 
+                        x: { grid: { display: false } } 
+                    },
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { backgroundColor: '#111111', padding: 12 } 
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

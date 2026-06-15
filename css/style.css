@@ -1,0 +1,277 @@
+:root {
+    --bg-main: #D1D1D1;  /* Oscurito clarito (Gris piedra suave) */
+    --bg-card: #EFEFEF;  /* Blanco apagado (No brillante) */
+    --accent: #000000;   /* Reemplaza al verde original en casi todo. El punto del logo y los acentos son Negros */
+    --dark: #111111;     /* Negro principal para textos */
+    --dark-soft: rgba(0, 0, 0, 0.25); /* Tono suave para bordes e íconos inactivos */
+    --white: #EFEFEF;    /* Mapeado al color de la tarjeta para consistencia */
+    --verde-chill: #8DE055; /* Color acento verde CHILL para sellos especiales y UI */
+    
+    /* Aurora ahora en escala de grises para un efecto niebla */
+    --aurora-1: rgba(0, 0, 0, 0.05); 
+    --aurora-2: rgba(255, 255, 255, 0.4);     
+    --aurora-3: rgba(0, 0, 0, 0.03);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    color: var(--dark);
+    position: relative;
+}
+
+/* === FONDO AURORA ANIMADO === */
+.aurora-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--bg-main); }
+.aurora-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.6; animation: floatAurora 20s ease-in-out infinite; }
+.aurora-blob:nth-child(1) { width: 400px; height: 400px; background: var(--aurora-1); top: -100px; left: -100px; animation-delay: 0s; }
+.aurora-blob:nth-child(2) { width: 350px; height: 350px; background: var(--aurora-2); bottom: -50px; right: -80px; animation-delay: -5s; }
+.aurora-blob:nth-child(3) { width: 300px; height: 300px; background: var(--aurora-3); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -10s; }
+
+@keyframes floatAurora {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(30px, -30px) scale(1.05); }
+    50% { transform: translate(-20px, 20px) scale(0.95); }
+    75% { transform: translate(20px, 10px) scale(1.02); }
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.main-container { position: relative; z-index: 1; width: 100%; max-width: 400px; }
+
+/* === TARJETA BASE ESTILOS === */
+.wallet-card { background: var(--bg-card); border-radius: 24px; padding: 24px 28px; border: 3px solid var(--dark); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); }
+
+/* === SKELETON LOADING === */
+#pantallaSkeleton { display: none; width: 100%; }
+.skeleton-block, .skeleton-circle { background: linear-gradient(90deg, rgba(0, 0, 0, 0.03) 25%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.03) 75%); background-size: 200% 100%; animation: skeletonShimmer 1.5s infinite linear; }
+.skeleton-block { border-radius: 12px; }
+.skeleton-circle { width: 44px; height: 44px; border-radius: 50%; }
+
+@keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.card-header-skeleton { display: flex; justify-content: space-between; margin-bottom: 28px; }
+.stamps-skeleton { background: rgba(0, 0, 0, 0.02); border-radius: 20px; padding: 24px 20px; margin-bottom: 16px; border: 2px dashed rgba(0, 0, 0, 0.08); }
+
+/* === PANTALLA REGISTRO === */
+#pantallaRegistro { display: none; text-align: center; }
+.registro-card { background: var(--bg-card); border-radius: 24px; padding: 48px 32px; border: 3px solid var(--dark); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); }
+.logo-container { margin-bottom: 30px; }
+.logo-animado { display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0 auto 12px; animation: pulseGlow 4s ease-in-out infinite; }
+
+@keyframes pulseGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-label { font-size: 13px; color: var(--dark); font-weight: 700; margin-bottom: 10px; display: block; opacity: 0.8; }
+.input-box { width: 100%; padding: 18px 20px; border-radius: 16px; border: 2px solid var(--dark-soft); font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; background: rgba(0, 0, 0, 0.03); color: var(--dark); transition: all 0.3s ease; outline: none; }
+.input-box::placeholder { color: var(--dark); opacity: 0.4; }
+.input-box:focus { border-color: var(--dark); box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1); }
+
+.btn-primary { width: 100%; padding: 20px 32px; border-radius: 16px; border: 2px solid var(--dark); background: var(--dark); color: var(--white); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); }
+.btn-primary:hover { transform: translateY(-2px); background: #222222; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); }
+.btn-primary:active { transform: scale(0.98); }
+
+#btnInstalarApp { display: none; width: 100%; margin-top: 16px; padding: 16px; border-radius: 16px; border: 2px dashed var(--dark); background: rgba(255, 255, 255, 0.5); color: var(--dark); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+#btnInstalarApp:hover { background: rgba(0, 0, 0, 0.05); }
+
+/* === PANTALLA TARJETA === */
+#pantallaTarjeta { display: none; animation: fadeIn 0.5s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.texto-girar { text-align: center; font-size: 13px; color: var(--dark); opacity: 0.6; margin-bottom: 20px; font-weight: 600; animation: breathe 3s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+
+.flip-container { perspective: 1500px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.flip-container.flipped .flipper { transform: rotateY(180deg); }
+.flipper { display: grid; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; }
+.front, .back { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 24px; }
+.front { transform: rotateY(0deg); }
+.back { transform: rotateY(180deg); }
+
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.user-info { text-align: right; }
+.user-nickname { font-size: 16px; font-weight: 800; color: var(--dark); }
+.user-tel-label { font-size: 12px; color: var(--dark); opacity: 0.6; font-weight: 600; display: block; margin-top: 4px; }
+
+/* === STAMPS/SELLOS === */
+.stamps-container { background: rgba(0, 0, 0, 0.03); border-radius: 20px; padding: 18px 16px; margin-bottom: 12px; border: 2px dashed var(--dark-soft); }
+.stamps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; justify-items: center; }
+
+/* === ÍCONOS DE SELLOS === */
+.stamp-cup, .stamp-discount, .stamp-bolt { width: 44px; height: 44px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* Ajuste de escala visual para que todos se vean del mismo tamaño */
+.stamp-discount { transform: scale(0.85); }
+.stamp-bolt { transform: scale(0.9); }
+
+/* Estados Vacíos */
+.stamp-cup .cup-path, .stamp-cup .steam-path, .stamp-cup .cup-handle { fill: none; stroke: var(--dark-soft); stroke-width: 2; transition: all 0.4s ease; }
+.stamp-cup .cup-handle { stroke-width: 4; stroke-linecap: round; }
+.stamp-cup .steam-path { stroke: var(--dark); stroke-width: 2; stroke-linecap: round; opacity: 0; transition: opacity 0.4s ease; }
+.stamp-cup .coffee-fill { fill: none; opacity: 0; transform: scaleY(0); transform-origin: bottom; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease; }
+
+.stamp-discount .discount-bg { fill: none; stroke: var(--dark-soft); stroke-width: 2; transition: all 0.4s ease; }
+.stamp-discount .discount-symbol { stroke: var(--dark-soft); stroke-width: 2; transition: all 0.4s ease; fill: none; }
+.stamp-bolt .bolt-main { fill: var(--dark-soft); transition: all 0.4s ease; }
+
+/* Estados Llenos (Normales, Negros) - Con ajuste de escala incluido */
+.stamp-cup.filled { transform: scale(1.1); filter: drop-shadow(0 4px 0px rgba(0, 0, 0, 0.15)); }
+.stamp-cup.filled .cup-path { fill: var(--dark); stroke: var(--dark); }
+.stamp-cup.filled .cup-handle { stroke: var(--dark); }
+.stamp-cup.filled .coffee-fill { fill: var(--dark); opacity: 1; transform: scaleY(1); }
+.stamp-cup.filled .steam-path { opacity: 0.8; animation: steam 2.5s ease-in-out infinite; animation-delay: 0.5s; stroke: var(--dark); }
+
+.stamp-discount.filled { transform: scale(0.95); filter: drop-shadow(0 4px 0px rgba(0, 0, 0, 0.15)); }
+.stamp-discount.filled .discount-bg { fill: var(--dark); stroke: var(--dark); }
+.stamp-discount.filled .discount-symbol { stroke: var(--bg-card); }
+
+.stamp-bolt.filled { transform: scale(1.0); filter: drop-shadow(0 4px 0px rgba(0, 0, 0, 0.15)); }
+.stamp-bolt.filled .bolt-main { fill: var(--dark); }
+
+@keyframes steam { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-15px); opacity: 0; } }
+
+.stamps-text { text-align: center; font-size: 11px; color: var(--dark); opacity: 0.6; margin: 0; font-weight: 600; }
+
+/* === APARTADO DE REFERENCIAS === */
+.references-box { background: rgba(0, 0, 0, 0.03); border-radius: 16px; padding: 10px 12px; margin-bottom: 18px; border: 1px solid var(--dark-soft); display: flex; flex-direction: column; gap: 8px; }
+.ref-item { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; color: var(--dark); }
+
+.ref-icon-badge { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ref-icon-badge svg { width: 100%; height: 100%; fill: none; }
+
+/* Ajuste visual en las referencias para igualar tamaños */
+.ref-item svg.stamp-discount { transform: scale(0.9); }
+.ref-item svg.stamp-bolt { transform: scale(0.95); }
+
+/* Iconos de referencia en verde chill CON borde negro */
+.ref-item svg.stamp-discount .discount-bg { fill: var(--verde-chill); stroke: var(--dark); stroke-width: 1.5; }
+.ref-item svg.stamp-discount .discount-symbol { stroke: var(--dark); stroke-width: 2; fill: none; }
+
+.ref-item svg.stamp-bolt .bolt-main { fill: var(--verde-chill); stroke: var(--dark); stroke-width: 1; }
+
+/* Trazo más fino en la taza de referencia (3) */
+.ref-item svg.stamp-cup .cup-path { 
+    fill: var(--verde-chill); 
+    stroke: var(--dark); 
+    stroke-width: 3; 
+}
+.ref-item svg.stamp-cup .cup-handle { 
+    stroke: var(--dark); 
+    stroke-width: 3; 
+}
+.ref-item svg.stamp-cup .coffee-fill { 
+    fill: var(--verde-chill); 
+}
+.ref-item svg.stamp-cup .steam-path { 
+    stroke: var(--dark); 
+    stroke-width: 2; 
+    opacity: 1; 
+}
+
+/* Ajuste visual para levantar la taza y alinearla con el texto */
+.ref-item svg.stamp-cup {
+    transform: translateY(-2px);
+}
+
+.ref-text-status { margin-left: auto; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; color: var(--verde-chill); }
+
+/* === INFO ROW === */
+.info-row { display: flex; justify-content: space-between; margin-bottom: 18px; padding: 0 4px; }
+.info-label { font-size: 11px; color: var(--dark); opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 700; }
+.info-value { font-weight: 800; font-size: 15px; color: var(--dark); }
+
+/* UI VERDE CHILL en Contador y Estado */
+.info-value-points { font-size: 28px; font-weight: 900; color: var(--verde-chill); font-family: 'Montserrat', sans-serif; }
+.premio-listo { color: var(--verde-chill) !important; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+/* === QR SECTION === */
+.qr-section { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.qr-box { background: var(--bg-card); padding: 14px; border-radius: 18px; border: 2px solid var(--dark); }
+.qr-box img { display: block; width: 110px; height: 110px; }
+.user-id { font-size: 11px; color: var(--dark); opacity: 0.6; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; }
+
+/* === DORSO TARJETA === */
+.back { 
+    background: var(--bg-card); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 40px; 
+    border: 3px solid var(--dark); 
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); 
+    min-height: 430px; 
+}
+
+.back-logo-animado { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    width: 100%; 
+    height: 100%; 
+}
+
+/* Efecto de movimiento sutil (flota y se agranda apenitas) */
+@keyframes floatBackLogo {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-6px) scale(1.02); }
+}
+
+.back-logo-animado svg {
+    animation: floatBackLogo 4s ease-in-out infinite;
+    display: block;
+    margin: 0 auto;
+}
+
+.back-logo-animado .logo-accent {
+    fill: var(--verde-chill);
+}
+
+/* === SISTEMA DE PARTÍCULAS === */
+.particle { position: fixed; width: 8px; height: 8px; background-color: var(--dark); border-radius: 50%; pointer-events: none; z-index: 9999; }
+
+/* === CONFETTI DE CELEBRACIÓN === */
+#confettiContainer { position: fixed; inset: 0; pointer-events: none; z-index: 9998; overflow: hidden; }
+.confetti { position: absolute; width: 10px; height: 10px; opacity: 0; }
+
+/* === MODALES Y BOTONES === */
+.btn-cerrar { margin-top: 32px; background: none; color: var(--dark); opacity: 0.6; border: none; width: 100%; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; padding: 16px; border-radius: 14px; transition: all 0.3s ease; }
+.btn-cerrar:hover { opacity: 1; background: rgba(0, 0, 0, 0.05); }
+
+.custom-modal-overlay { position: fixed; inset: 0; background: rgba(209, 209, 209, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 24px; }
+.custom-modal-box { background: var(--bg-card); border-radius: 24px; padding: 36px 28px; width: 100%; max-width: 340px; text-align: center; border: 3px solid var(--dark); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); animation: modalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.custom-modal-text { color: var(--dark); font-size: 15px; margin-bottom: 28px; font-weight: 600; line-height: 1.6; }
+.btn-modal-ok { width: 100%; background: var(--dark); color: var(--white); border: 2px solid var(--dark); padding: 16px; border-radius: 14px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 15px; cursor: pointer; transition: all 0.3s ease; }
+.btn-modal-ok:hover { transform: translateY(-2px); background: #222222; }
+
+@media (max-width: 380px) {
+    .wallet-card { padding: 20px; }
+    .stamps-grid { gap: 8px; }
+    .stamp-cup, .stamp-discount, .stamp-bolt { width: 38px; height: 38px; }
+}
+
+/* === REGLAS PARA SELLOS ESPECIALES LLENOS (NEGRO + VERDE CHILL) === */
+
+/* Trazo más fino en la taza llena de la cuadrícula principal (bajó a 3) */
+.stamp-cup.sello-especial.filled .cup-path { fill: var(--verde-chill); stroke: var(--dark); stroke-width: 3; }
+.stamp-cup.sello-especial.filled .cup-handle { stroke: var(--dark); stroke-width: 3; }
+.stamp-cup.sello-especial.filled .coffee-fill { fill: var(--verde-chill); }
+.stamp-cup.sello-especial.filled .steam-path { stroke: var(--dark); stroke-width: 2; } 
+
+.stamp-discount.sello-especial.filled .discount-bg { fill: var(--verde-chill); stroke: var(--dark); stroke-width: 1.5; }
+.stamp-discount.sello-especial.filled .discount-symbol { stroke: var(--dark); stroke-width: 2; fill: none; }
+
+.stamp-bolt.sello-especial.filled .bolt-main { fill: var(--verde-chill); stroke: var(--dark); stroke-width: 1; }
