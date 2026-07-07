@@ -11,11 +11,11 @@ class RamblaApp {
 
         this.ui = {
             skeleton: document.getElementById('pantallaSkeleton'),
-            registro: document.getElementById('pantallaRegistro'),
+            ingreso: document.getElementById('pantallaIngreso'),
             tarjeta: document.getElementById('pantallaTarjeta'),
             nombre: document.getElementById('displayNombre'),
             telLabel: document.getElementById('displayTelLabel'),
-            qr: document.getElementById('qrImage'), // Volvemos al elemento img
+            qr: document.getElementById('qrImage'), 
             gridSellos: document.getElementById('gridSellos'),
             puntos: document.getElementById('displayPuntos'),
             premio: document.getElementById('displayPremio'),
@@ -30,9 +30,9 @@ class RamblaApp {
     }
 
     vincularEventos() {
-        document.getElementById('btnCrearTarjeta').addEventListener('click', () => this.ingresar());
-        document.getElementById('btnCerrarSesion').addEventListener('click', () => this.cerrarSesion());
+        document.getElementById('btnIngresar').addEventListener('click', () => this.intentarIngreso());
         
+        document.getElementById('btnCerrarSesion').addEventListener('click', () => this.cerrarSesion());
         document.getElementById('btnCerrarAlerta').addEventListener('click', () => {
             this.ui.modalAlerta.style.display = 'none';
         });
@@ -44,18 +44,18 @@ class RamblaApp {
     }
 
     iniciar() {
-        const celularLocal = localStorage.getItem('miTarjetaNexoTEL');
+        const celularLocal = localStorage.getItem('miTarjetaramblaTEL');
         if (celularLocal) {
             this.cambiarPantalla('skeleton'); 
             this.abrirTarjeta(celularLocal);
         } else {
-            this.cambiarPantalla('registro');
+            this.cambiarPantalla('ingreso');
         }
     }
 
     cambiarPantalla(pantalla) {
         this.ui.skeleton.style.display = pantalla === 'skeleton' ? 'block' : 'none';
-        this.ui.registro.style.display = pantalla === 'registro' ? 'block' : 'none';
+        this.ui.ingreso.style.display = pantalla === 'ingreso' ? 'block' : 'none';
         this.ui.tarjeta.style.display = pantalla === 'tarjeta' ? 'block' : 'none';
     }
 
@@ -64,15 +64,16 @@ class RamblaApp {
         return texto.trim().toLowerCase().replace(/\b\w/g, letra => letra.toUpperCase());
     }
 
-    async ingresar() {
-        const nombreIngresado = document.getElementById('inputNombre').value;
-        const nombre = this.formatearNombre(nombreIngresado);
-        let celular = document.getElementById('inputCelular').value.trim();
+    async intentarIngreso() {
+        const nombreIngresado = document.getElementById('inputNombreIngreso').value.trim();
+        let celular = document.getElementById('inputCelularIngreso').value.trim();
 
-        if(!nombre || !celular) return this.mostrarAlerta("Por favor completa tu nombre y número para continuar.");
-        
+        // Limpiamos el número de caracteres no numéricos
         celular = celular.replace(/\D/g,''); 
-        if(celular.length < 8) return this.mostrarAlerta("El número de WhatsApp es demasiado corto. Revisa que esté bien escrito.");
+
+        if(celular.length !== 10) {
+            return this.mostrarAlerta("El número debe tener exactamente 10 dígitos (sin 0 y sin 15).");
+        }
 
         this.cambiarPantalla('skeleton');
 
@@ -81,28 +82,42 @@ class RamblaApp {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                await setDoc(docRef, { nombre: nombre }, { merge: true });
+                if (nombreIngresado) {
+                    const nombreFormateado = this.formatearNombre(nombreIngresado);
+                    await setDoc(docRef, { nombre: nombreFormateado }, { merge: true });
+                }
+                
+                localStorage.setItem('miTarjetaramblaTEL', celular);
+                this.abrirTarjeta(celular);
+
             } else {
+                if (!nombreIngresado) {
+                    this.mostrarAlerta("¡Bienvenido! Al ser tu primera vez, por favor ingresa tu nombre o apodo para crear tu tarjeta.");
+                    this.cambiarPantalla('ingreso');
+                    return;
+                }
+
+                const nombreFormateado = this.formatearNombre(nombreIngresado);
                 await setDoc(docRef, { 
-                    nombre: nombre, 
+                    nombre: nombreFormateado, 
                     puntos: 0,
                     desc3Usado: false,
                     desc5Usado: false,
+                    aceptaPromos: true, 
                     fechaRegistro: new Date().toISOString()
                 });
+                
+                localStorage.setItem('miTarjetaramblaTEL', celular);
+                this.abrirTarjeta(celular);
             }
-            
-            localStorage.setItem('miTarjetaNexoTEL', celular);
-            this.abrirTarjeta(celular);
         } catch (e) {
-            console.error("Error:", e);
+            console.error("Error de conexión:", e);
             this.mostrarAlerta("Hubo un error de conexión. Revisa tu internet e intenta de nuevo.");
-            this.cambiarPantalla('registro');
+            this.cambiarPantalla('ingreso');
         }
     }
 
     abrirTarjeta(celular) {
-        // --- RESTAURAMOS EL QR ORIGINAL VÍA API ---
         this.ui.qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${celular}&bgcolor=EFEFEF&color=000000`;
         this.ui.telLabel.innerText = `******${celular.slice(-4)}`;
 
@@ -140,9 +155,9 @@ class RamblaApp {
             const contenedorSvg = document.createElement('div');
             
             if (i === 3) {
-                contenedorSvg.innerHTML = this.obtenerSvgDiscount();
-            } else if (i === 5) {
                 contenedorSvg.innerHTML = this.obtenerSvgBolt();
+            } else if (i === 5) {
+                contenedorSvg.innerHTML = this.obtenerSvgDiscount();
             } else {
                 contenedorSvg.innerHTML = this.obtenerSvgTaza();
             }
@@ -301,14 +316,13 @@ class RamblaApp {
 
     cerrarSesion() {
         if (this.unsubscribe) this.unsubscribe(); 
-        localStorage.removeItem('miTarjetaNexoTEL');
+        localStorage.removeItem('miTarjetaramblaTEL');
         location.reload();
     }
 }
 
 new RamblaApp();
 
-// --- LÓGICA DE INSTALACIÓN PWA ACTUALIZADA PARA FORZAR LA APARICIÓN ---
 let eventoInstalacion = null;
 const btnInstalar = document.getElementById('btnInstalarApp');
 
@@ -329,7 +343,6 @@ if ('serviceWorker' in navigator) {
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    console.log(" beforeinstallprompt detectado!");
     e.preventDefault(); 
     eventoInstalacion = e;
     
@@ -342,13 +355,11 @@ window.addEventListener('beforeinstallprompt', (e) => {
 if(btnInstalar) {
     btnInstalar.addEventListener('click', async () => {
         if (!eventoInstalacion) {
-            console.log("El navegador no permite la instalación manual en este momento.");
             this.mostrarAlerta("La app parece estar ya instalada o tu navegador no soporta la instalación rápida. Revisa el menú de tu navegador y busca 'Instalar o Agregar a pantalla principal'.");
             return;
         }
         eventoInstalacion.prompt(); 
         const { outcome } = await eventoInstalacion.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
         if (outcome === 'accepted') {
             btnInstalar.style.display = 'none'; 
         }
@@ -357,6 +368,5 @@ if(btnInstalar) {
 }
 
 window.addEventListener('appinstalled', () => {
-    console.log("App instalada con éxito!");
     if(btnInstalar) btnInstalar.style.display = 'none';
 });

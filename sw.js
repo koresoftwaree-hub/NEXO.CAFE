@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexo-cache-v3'; 
+const CACHE_NAME = 'rambla-cache-v10'; 
 
 // Lista de archivos clave que el celular debe guardar en memoria
 const urlsToCache = [
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Archivos de Nexo Cafe cacheados correctamente');
+        console.log('Archivos de rambla Cafe cacheados correctamente');
         return cache.addAll(urlsToCache);
       })
   );
