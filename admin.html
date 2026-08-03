@@ -172,7 +172,7 @@
                 </div>
             </div>
 
-            <div id="mensajeLoader">Cargando base de datos estática...</div>
+            <div id="mensajeLoader">Cargando base de datos...</div>
 
             <div id="contenidoDatos" style="display: none;">
                 
@@ -195,7 +195,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="uiGenBarritas">0</div>
-                        <div class="stat-label">Premios 50% OFF Avocado</div>
+                        <div class="stat-label">50% OFF Avocado Entregados</div>
                     </div>
                 </div>
 
@@ -432,7 +432,7 @@
                 document.getElementById('gridMes').classList.add('oculto');
                 document.getElementById('panelGraficoEvolucion').classList.remove('oculto');
                 document.getElementById('panelTermometro').classList.remove('oculto');
-            } else {
+            }else {
                 document.getElementById('gridGeneral').classList.add('oculto');
                 document.getElementById('gridMes').classList.remove('oculto');
                 document.getElementById('panelGraficoEvolucion').classList.add('oculto');
@@ -443,20 +443,33 @@
                 
                 document.querySelectorAll('.lbl-mes-dinamico').forEach(lbl => lbl.innerText = nombreMes);
                 
+                // 1. Mantenemos el conteo de clientes NUEVOS del mes para la tarjeta superior
                 let filtradosClientes = todosLosClientes.filter(c => c.fecha && c.fecha.startsWith(filtroActual));
-                clientesParaRanking = filtradosClientes; 
-
+                let mesTotalClientes = filtradosClientes.length;
+                
+                // 2. Filtramos los movimientos que ocurrieron ESTE mes
                 let movsDelMes = todosLosMovimientos.filter(m => m.fecha && m.fecha.startsWith(filtroActual));
                 
-                let mesTotalClientes = filtradosClientes.length;
                 let mesTotalSellos = 0;
                 let mesTotalCafes = 0;
                 let mesTotalDesc = 0;
                 let mesTotalBarritas = 0;
                 
+                // NUEVO: Diccionario para sumar los sellos por cada número de teléfono
+                let sellosPorClienteMes = {};
+                
                 movsDelMes.forEach(m => {
+                    // IMPORTANTE: Asegurate de que en tu colección "movimientos" exista un campo "telefono".
+                    let idCliente = m.telefono; 
+
                     if (m.operacion === 'sumar_restar' && m.cantidad > 0) {
                         mesTotalSellos += m.cantidad;
+                        
+                        // Le sumamos los sellos al teléfono correspondiente
+                        if (idCliente) {
+                            sellosPorClienteMes[idCliente] = (sellosPorClienteMes[idCliente] || 0) + m.cantidad;
+                        }
+
                     } else if (m.operacion === 'canje_final') {
                         mesTotalCafes += 1;
                     } else if (m.operacion === 'canje_3') {
@@ -471,6 +484,16 @@
                 document.getElementById('uiMesCafes').innerText = mesTotalCafes;
                 document.getElementById('uiMesDesc').innerText = mesTotalDesc;
                 document.getElementById('uiMesBarritas').innerText = mesTotalBarritas;
+
+                // NUEVO: Armamos el ranking cruzando los datos
+                clientesParaRanking = todosLosClientes.map(c => {
+                    return {
+                        telefono: c.telefono, // Este es el ID del documento que vimos en tu captura
+                        nombre: c.nombre,
+                        // Buscamos cuántos sellos sumó este mes. Si no vino, queda en 0.
+                        totalSellos: sellosPorClienteMes[c.telefono] || 0 
+                    };
+                }).filter(c => c.totalSellos > 0); // Ocultamos del ranking a los que no sumaron sellos en el mes
             }
 
             let rankingClientes = [...clientesParaRanking].sort((a, b) => b.totalSellos - a.totalSellos);
